@@ -1,25 +1,26 @@
 {
   "name": "nw-backend",
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/jsonwebtoken": "^9.0.10",
-    "prisma": "5.22.0"
-  },
-  "peerDependencies": {
-    "typescript": "^7.0.2"
+  "scripts": {
+    "dev": "bun --watch run src/index.ts",
+    "build": "bunx prisma generate",
+    "start": "bunx prisma generate && bunx prisma migrate deploy && bun run src/index.ts",
+    "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
-    "@hono/node-server": "^2.1.1",
     "@prisma/client": "5.22.0",
     "hono": "^4.13.8",
     "jsonwebtoken": "^9.0.3",
+    "prisma": "5.22.0",
     "zod": "^4.6.5"
   },
-  "scripts": {
-    "start": "./node_modules/.bin/prisma generate && ./node_modules/.bin/prisma migrate deploy && bun run src/index.ts",
-    "dev": "bun --watch run src/index.ts"
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jsonwebtoken": "^9.0.10"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
   }
 }
