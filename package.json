@@ -19,6 +19,9 @@
     "zod": "^4.6.5"
   },
   "scripts": {
-    "seed": "bun run prisma/seed.ts"
+    "postinstall": "prisma generate",
+    "seed": "bun run prisma/seed.ts",
+    "dev": "bun --watch run src/index.ts",
+    "start": "bun run src/index.ts"
   }
 }
