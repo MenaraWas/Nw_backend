@@ -72,10 +72,10 @@ Server runs on `http://localhost:3000`
 | Role | Email | Password | Department |
 |------|-------|----------|------------|
 | PM | pm@nodewave.com | admin123 | PRODUCT |
-| INTERNAL | uiux@nodewave.com | admin123 | UIUX |
-| INTERNAL | frontend@nodewave.com | admin123 | FRONTEND |
-| INTERNAL | backend@nodewave.com | admin123 | BACKEND |
-| CLIENT | client@nodewave.com | admin123 | - |
+| INTERNAL | uiux@nodewave.com | password123 | UIUX |
+| INTERNAL | frontend@nodewave.com | password123 | FRONTEND |
+| INTERNAL | backend@nodewave.com | password123 | BACKEND |
+| CLIENT | client@nodewave.com | password123 | - |
 
 ## API Endpoints
 
