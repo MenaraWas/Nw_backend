@@ -10,6 +10,7 @@
     "seed": "bun run prisma/seed.ts"
   },
   "dependencies": {
+    "@nodewave/prisma-ezfilter": "^0.2.1",
     "@prisma/client": "5.22.0",
     "hono": "^4.13.8",
     "jsonwebtoken": "^9.0.3",

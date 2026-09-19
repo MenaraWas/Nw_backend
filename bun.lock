@@ -5,6 +5,7 @@
     "": {
       "name": "nw-backend",
       "dependencies": {
+        "@nodewave/prisma-ezfilter": "^0.2.1",
         "@prisma/client": "5.22.0",
         "hono": "^4.13.8",
         "jsonwebtoken": "^9.0.3",
@@ -21,6 +22,8 @@
     },
   },
   "packages": {
+    "@nodewave/prisma-ezfilter": ["@nodewave/prisma-ezfilter@0.2.1", "", { "peerDependencies": { "@prisma/client": ">=4.0.0" } }, "sha512-94CoiXhhUiaVgziuf4Q5ZQNI74X2pbTzb8XeS+Zc4O9HDpRMpKpfPQ5Gnzm/rSkQY/iUKGWhvOG/mjEJEraVug=="],
+
     "@prisma/client": ["@prisma/client@5.22.0", "", { "peerDependencies": { "prisma": "*" }, "optionalPeers": ["prisma"] }, "sha512-M0SVXfyHnQREBKxCgyo7sffrKttwE6R8PMq330MIUF0pTwjUhLbW84pFDlf06B27XyCR++VtjugEnIHdr07SVA=="],
 
     "@prisma/debug": ["@prisma/debug@5.22.0", "", {}, "sha512-AUt44v3YJeggO2ZU5BkXI7M4hu9BF2zzH2iF2V5pyXT/lRTyWiElZ7It+bRH1EshoMRxHgpYg4VB6rCM+mG5jQ=="],

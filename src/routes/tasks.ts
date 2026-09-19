@@ -3,6 +3,7 @@ import prisma from '../lib/prisma'
 import { authMiddleware } from '../middleware/auth'
 import { z } from 'zod'
 import type { AppVariables } from '../types'
+import { BuildQueryFilter, extractQueryFromParams } from '@nodewave/prisma-ezfilter'
 
 const tasks = new Hono<{ Variables: AppVariables }>()
 
@@ -24,6 +25,12 @@ const updateStatusSchema = z.object({
 
 const uploadAttachmentSchema = z.object({
     attachment: z.string().min(1),
+})
+
+const taskQueryBuilder = new BuildQueryFilter({
+  allowedFields: ['title', 'status', 'clientVisible', 'createdAt'],
+  maxPageSize: 50,
+  defaultPageSize: 20,
 })
 
 //helper untuk ctat audit log
@@ -54,13 +61,12 @@ async function checkDependencies(taskId: string): Promise<boolean> {
   return checkDependenciesDone(taskId)
 }
 
-//get tasks by project
+// Get tasks by project
 tasks.get('/project/:projectId', async (c) => {
-    const user = c.get('user')
-    const { projectId } = c.req.param()
+  const user = c.get('user')
+  const { projectId } = c.req.param()
 
   try {
-    // Cek apakah user adalah member project
     const isMember = await prisma.projectMember.findFirst({
       where: { projectId, userId: user.id },
     })
@@ -68,59 +74,49 @@ tasks.get('/project/:projectId', async (c) => {
     if (!isMember) {
       return c.json({ message: 'Akses ditolak' }, 403)
     }
-        const data = await prisma.task.findMany({
-      where: { projectId, deletedAt: null },
-      include: {
-        assignee: {
-          select: {
-            id: true,
-            name: true,
-            department: true,
-          },
-        },
-        dependencies: {
-          include: {
-            prerequisite: {
-              select: {
-                id: true,
-                title: true,
-                status: true,
-              },
-            },
-          },
-        },
-        auditLogs: {
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    })
 
-    //data masking untuk client
-    if(user.role === 'CLIENT'){
-        const clientData = data
-        .filter((task) => task.clientVisible)
-        .map((task) => ({
-            id: task.id,
-            title: task.title,
-            status: task.status,
-        }))
+    const queryParams = c.req.query()
+    const filter = extractQueryFromParams(queryParams)
+    const { query } = taskQueryBuilder.build(filter)
 
-        return c.json({ data: clientData })
+    const where = {
+      ...query.where,
+      projectId,
+      deletedAt: null,
     }
 
-    return c.json({data})
-    } catch ( error ) {
-        return c.json({message: 'Gagal Mengambil Task', error}, 500)
+    const [data, total] = await Promise.all([
+      prisma.task.findMany({
+        ...query,
+        where,
+        include: {
+          assignee: { select: { id: true, name: true, department: true } },
+          dependencies: {
+            include: {
+              prerequisite: { select: { id: true, title: true, status: true } },
+            },
+          },
+          auditLogs: {
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+            include: { user: { select: { id: true, name: true } } },
+          },
+        },
+      }),
+      prisma.task.count({ where }),
+    ])
+
+    if (user.role === 'CLIENT') {
+      const clientData = data
+        .filter((t) => t.clientVisible)
+        .map((t) => ({ id: t.id, title: t.title, status: t.status }))
+      return c.json({ data: clientData, total: clientData.length, page: filter.page || 1, rows: filter.rows || 20 })
     }
+
+    return c.json({ data, total, page: filter.page || 1, rows: filter.rows || 20 })
+  } catch (error) {
+    return c.json({ message: 'Gagal mengambil data task', error }, 500)
+  }
 })
 
 //create task PM only

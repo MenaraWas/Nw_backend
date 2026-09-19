@@ -3,6 +3,8 @@ import prisma from '../lib/prisma'
 import { authMiddleware } from '../middleware/auth'
 import { z } from 'zod'
 import type { AppVariables } from '../types'
+import { BuildQueryFilter, extractQueryFromParams } from '@nodewave/prisma-ezfilter'
+
 
 const projects = new Hono<{ Variables: AppVariables }>()
 
@@ -13,72 +15,65 @@ const projectSchema = z.object({
   description: z.string().optional(),
 })
 
-// Get all projects (sesuai role)
+const queryBuilder = new BuildQueryFilter({
+  allowedFields: ['name', 'description', 'createdAt'],
+  maxPageSize: 50,
+  defaultPageSize: 10,
+})
+
+// Get all projects
 projects.get('/', async (c) => {
   const user = c.get('user')
 
   try {
-    // Client hanya lihat project mereka sendiri
-    // PM dan Internal lihat semua project yang mereka ikuti
-    const data = await prisma.project.findMany({
-      where: {
-        deletedAt: null,
-        members: {
-          some: {
-            userId: user.id,
-          },
-        },
-      },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                role: true,
-                department: true,
+    const queryParams = c.req.query()
+    const filter = extractQueryFromParams(queryParams)
+    const { query } = queryBuilder.build(filter)
+
+    const where = {
+      ...query.where,
+      deletedAt: null,
+      members: { some: { userId: user.id } },
+    }
+
+    const [data, total] = await Promise.all([
+      prisma.project.findMany({
+        ...query,
+        where,
+        include: {
+          members: {
+            include: {
+              user: {
+                select: { id: true, name: true, role: true, department: true },
               },
             },
           },
+          tasks: { where: { deletedAt: null } },
         },
-        tasks: {
-          where: {
-            deletedAt: null,
-          },
-        },
-      },
-    })
+      }),
+      prisma.project.count({ where }),
+    ])
 
-    // Kalau Client, return hanya aggregate metrics
+    // Client data masking
     if (user.role === 'CLIENT') {
       const clientData = data.map((project) => {
         const totalTasks = project.tasks.length
-        const doneTasks = project.tasks.filter(
-          (t) => t.status === 'DONE'
-        ).length
-        const percentage =
-          totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
-
+        const doneTasks = project.tasks.filter((t) => t.status === 'DONE').length
+        const percentage = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0
         return {
           id: project.id,
           name: project.name,
           description: project.description,
-          progress: `${percentage}% Complete`,
+          progress: `${percentage}%`,
           tasks: project.tasks
             .filter((t) => t.clientVisible)
-            .map((t) => ({
-              id: t.id,
-              title: t.title,
-              status: t.status,
-            })),
+            .map((t) => ({ id: t.id, title: t.title, status: t.status })),
         }
       })
-
-      return c.json({ data: clientData })
+      return c.json({ data: clientData, total, page: filter.page || 1, rows: filter.rows || 10 })
     }
 
-    return c.json({ data })
+    return c.json({ data, total, page: filter.page || 1, rows: filter.rows || 10 })
   } catch (error) {
     return c.json({ message: 'Gagal mengambil data project', error }, 500)
   }
