@@ -17,5 +17,8 @@
     "hono": "^4.13.8",
     "jsonwebtoken": "^9.0.3",
     "zod": "^4.6.5"
+  },
+  "scripts": {
+    "seed": "bun run prisma/seed.ts"
   }
 }
