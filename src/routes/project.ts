@@ -290,27 +290,6 @@ projects.delete('/:id/members/:userId', async (c) => {
   const { id, userId } = c.req.param()
 
   try {
-    await prisma.projectMember.deleteMany({
-      where: { projectId: id, userId },
-    })
-
-    return c.json({ message: 'Member berhasil dihapus' })
-  } catch (error) {
-    return c.json({ message: 'Gagal menghapus member', error }, 400)
-  }
-})
-
-// Remove member from project (hanya PM)
-projects.delete('/:id/members/:userId', async (c) => {
-  const user = c.get('user')
-
-  if (user.role !== 'PM') {
-    return c.json({ message: 'Akses ditolak' }, 403)
-  }
-
-  const { id, userId } = c.req.param()
-
-  try {
     // Cek apakah user punya task aktif di project ini
     const activeTasks = await prisma.task.findMany({
       where: {
@@ -339,5 +318,6 @@ projects.delete('/:id/members/:userId', async (c) => {
     return c.json({ message: 'Gagal menghapus member', error }, 400)
   }
 })
+
 
 export default projects
