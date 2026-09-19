@@ -6,7 +6,7 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/jsonwebtoken": "^9.0.10",
-    "prisma": "4.16.2"
+    "prisma": "5.22.0"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
@@ -19,8 +19,7 @@
     "zod": "^4.6.5"
   },
   "scripts": {
-    "postinstall": "./node_modules/.bin/prisma generate",
-    "start": "./node_modules/.bin/prisma migrate deploy && bun run src/index.ts",
+    "start": "prisma migrate deploy && bun run src/index.ts",
     "seed": "bun run prisma/seed.ts",
     "dev": "bun --watch run src/index.ts"
   }
