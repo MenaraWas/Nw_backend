@@ -19,8 +19,8 @@
     "zod": "^4.6.5"
   },
   "scripts": {
-    "postinstall": "prisma generate",
-    "start": "prisma migrate deploy && bun run src/index.ts",
+    "postinstall": "echo 'skip prisma generate during install'",
+    "start": "prisma generate && prisma migrate deploy && bun run src/index.ts",
     "seed": "bun run prisma/seed.ts",
     "dev": "bun --watch run src/index.ts"
   }
