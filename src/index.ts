@@ -5,6 +5,7 @@ import auth from './routes/auth'
 import type { AppVariables } from './types'
 import projects from './routes/project'
 import tasks from './routes/tasks'
+import users from './routes/users'
 
 const app = new Hono<{ Variables: AppVariables }>()
 
@@ -16,6 +17,7 @@ app.use('*', logger())
 app.route('/api/auth', auth)
 app.route('/api/projects', projects)
 app.route('/api/tasks', tasks)
+app.route('/api/users', users)
 
 //health check
 app.get('/', (c) => {

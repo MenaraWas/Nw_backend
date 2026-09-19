@@ -243,4 +243,61 @@ projects.delete('/:id', async (c) => {
   }
 })
 
+// Add member to project (hanya PM)
+projects.post('/:id/members', async (c) => {
+  const user = c.get('user')
+
+  if (user.role !== 'PM') {
+    return c.json({ message: 'Akses ditolak' }, 403)
+  }
+
+  const { id } = c.req.param()
+
+  try {
+    const { userId } = await c.req.json()
+
+    const existing = await prisma.projectMember.findFirst({
+      where: { projectId: id, userId },
+    })
+
+    if (existing) {
+      return c.json({ message: 'User sudah menjadi member' }, 400)
+    }
+
+    const member = await prisma.projectMember.create({
+      data: { projectId: id, userId },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, role: true, department: true },
+        },
+      },
+    })
+
+    return c.json({ message: 'Member berhasil ditambahkan', data: member }, 201)
+  } catch (error) {
+    return c.json({ message: 'Gagal menambah member', error }, 400)
+  }
+})
+
+// Remove member from project (hanya PM)
+projects.delete('/:id/members/:userId', async (c) => {
+  const user = c.get('user')
+
+  if (user.role !== 'PM') {
+    return c.json({ message: 'Akses ditolak' }, 403)
+  }
+
+  const { id, userId } = c.req.param()
+
+  try {
+    await prisma.projectMember.deleteMany({
+      where: { projectId: id, userId },
+    })
+
+    return c.json({ message: 'Member berhasil dihapus' })
+  } catch (error) {
+    return c.json({ message: 'Gagal menghapus member', error }, 400)
+  }
+})
+
 export default projects
