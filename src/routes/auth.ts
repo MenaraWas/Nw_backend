@@ -3,8 +3,9 @@ import { z } from 'zod'
 import { createHash } from 'crypto'
 import prisma from '../lib/prisma'
 import { signToken, verifyToken } from '../lib/jwt'
+import type { AppVariables } from '../types'
 
-const auth = new Hono()
+const auth = new Hono<{ Variables: AppVariables }>()
 
 function hashPassword(password: string): string {
     return createHash('sha256').update(password).digest('hex')

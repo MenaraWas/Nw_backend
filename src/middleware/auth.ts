@@ -1,7 +1,8 @@
 import type { Context, Next } from "hono";
 import { verifyToken } from "../lib/jwt";
+import type { AppVariables } from "../types";
 
-export async function authMiddleware(c: Context, next: Next) {
+export async function authMiddleware(c: Context<{ Variables: AppVariables }>, next: Next) {
     const authHeader = c.req.header('Authorization')
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

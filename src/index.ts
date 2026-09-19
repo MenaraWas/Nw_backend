@@ -2,8 +2,9 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import {logger} from 'hono/logger'
 import auth from './routes/auth'
+import type { AppVariables } from './types'
 
-const app = new Hono()
+const app = new Hono<{ Variables: AppVariables }>()
 
 //middleware global
 app.use('*', cors())
