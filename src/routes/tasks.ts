@@ -366,4 +366,49 @@ tasks.delete('/:id', async (c) => {
   }
 })
 
+// Reassign task (hanya PM)
+tasks.patch('/:id/assignee', async (c) => {
+  const user = c.get('user')
+
+  if (user.role !== 'PM') {
+    return c.json({ message: 'Akses ditolak' }, 403)
+  }
+
+  const { id } = c.req.param()
+
+  try {
+    const { assigneeId } = await c.req.json()
+
+    const task = await prisma.task.findFirst({
+      where: { id, deletedAt: null },
+    })
+
+    if (!task) {
+      return c.json({ message: 'Task tidak ditemukan' }, 404)
+    }
+
+    const oldAssigneeId = task.assigneeId
+
+    const updated = await prisma.task.update({
+      where: { id },
+      data: {
+        assigneeId,
+        version: { increment: 1 },
+      },
+    })
+
+    await createAuditLog(
+      id,
+      user.id,
+      'assigneeId',
+      oldAssigneeId || null,
+      assigneeId
+    )
+
+    return c.json({ message: 'Task berhasil di-reassign', data: updated })
+  } catch (error) {
+    return c.json({ message: 'Gagal reassign task', error }, 400)
+  }
+})
+
 export default tasks
