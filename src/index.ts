@@ -3,6 +3,8 @@ import { cors } from 'hono/cors'
 import {logger} from 'hono/logger'
 import auth from './routes/auth'
 import type { AppVariables } from './types'
+import projects from './routes/project'
+import tasks from './routes/tasks'
 
 const app = new Hono<{ Variables: AppVariables }>()
 
@@ -12,6 +14,8 @@ app.use('*', logger())
 
 //routes
 app.route('/api/auth', auth)
+app.route('/api/projects', projects)
+app.route('/api/tasks', tasks)
 
 //health check
 app.get('/', (c) => {
